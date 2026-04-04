@@ -1,0 +1,295 @@
+/* flyticket/frontend/src/index.css */
+
+/* --- CSS Variables (Design Tokens) --- */
+/* This ensures consistent colors and spacing across the app */
+:root {
+  --primary-color: #0056b3;
+  --primary-hover: #004494;
+  --bg-color: #f4f7f6;
+  --text-color: #333;
+  --card-bg: #ffffff;
+  --border-radius: 8px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+}
+
+/* --- Global Reset --- */
+* {
+  box-sizing: border-box; /* Ensures padding doesn't affect overall width */
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+/* --- Responsive Utility Classes --- */
+/* We will use these on our main layout wrapper */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-md);
+}
+
+/* Basic mobile-first button styling */
+.btn {
+  display: inline-block;
+  background-color: var(--primary-color);
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-weight: bold;
+  text-align: center;
+  transition: background-color 0.2s;
+}
+
+.btn:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Append to flyticket/frontend/src/index.css */
+
+/* --- Home Page & Search Form --- */
+.hero-section {
+  background-color: var(--primary-color);
+  color: white;
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  margin-bottom: var(--spacing-lg);
+  text-align: center;
+}
+
+.search-form {
+  display: flex;
+  flex-wrap: wrap; /* Allows items to wrap to the next line on small screens */
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+  background: white;
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  color: var(--text-color);
+}
+
+.form-group {
+  flex: 1; /* Makes all inputs stretch equally */
+  min-width: 150px; /* Prevents inputs from getting too squished on mobile */
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+  font-weight: bold;
+}
+
+.form-group select,
+.form-group input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.btn-group {
+  justify-content: flex-end;
+}
+
+.btn-search {
+  height: 100%;
+  margin-top: 24px; /* Aligns button with inputs */
+}
+
+/* --- Flight Card --- */
+.flight-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.flight-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--card-bg);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  flex-wrap: wrap; /* Crucial for mobile responsiveness */
+}
+
+.flight-card-route {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  flex: 2;
+  min-width: 250px; /* Forces wrap on very small screens */
+}
+
+.city-time h3 {
+  color: var(--primary-color);
+  margin-bottom: 4px;
+}
+
+.flight-card-details {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  flex: 1;
+  justify-content: flex-end;
+  min-width: 200px; /* Forces wrap on very small screens */
+}
+
+.price {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #28a745;
+}
+
+.seats {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.error-text {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+/* Mobile Media Query for tighter spacing on small phones */
+@media (max-width: 600px) {
+  .flight-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+  }
+
+  .flight-card-details {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .btn-search {
+    width: 100%;
+  }
+}
+
+/* Append to flyticket/frontend/src/index.css */
+
+/* --- Booking Page --- */
+.booking-layout {
+  display: flex;
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+  flex-wrap: wrap; /* Crucial for mobile responsiveness */
+}
+
+.booking-form-container {
+  flex: 2;
+  background: white;
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  min-width: 300px;
+}
+
+.booking-form {
+  margin-top: var(--spacing-md);
+}
+
+.btn-book {
+  width: 100%;
+  margin-top: var(--spacing-md);
+  padding: 15px;
+  font-size: 1.1rem;
+}
+
+.flight-summary-card {
+  flex: 1;
+  background: #e9ecef;
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  min-width: 250px;
+  height: fit-content;
+}
+
+.summary-details p {
+  margin-bottom: 8px;
+}
+
+.summary-price {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--primary-color);
+  margin-top: var(--spacing-md);
+}
+
+/* --- Confirmation Page --- */
+.text-center {
+  text-align: center;
+}
+
+.success-badge {
+  background-color: #d4edda;
+  color: #155724;
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  margin-bottom: var(--spacing-lg);
+}
+
+.ticket-receipt {
+  background: white;
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  text-align: left;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.booking-ref {
+  font-size: 1.2rem;
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-md);
+}
+
+.receipt-grid {
+  display: flex;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.receipt-section {
+  flex: 1;
+  min-width: 200px;
+}
+
+.receipt-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}

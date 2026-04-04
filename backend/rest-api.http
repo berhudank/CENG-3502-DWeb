@@ -1,0 +1,148 @@
+# flyticket/backend/rest-api.http
+
+# Define global variables for the file
+@baseUrl = http://localhost:5000/api
+@adminUsername = admin
+@adminPassword = supersecretpassword
+@testEmail = test.passenger@example.com
+
+### ==========================================
+### 1. SYSTEM HEALTH
+### ==========================================
+
+### Ping the server and database
+GET {{baseUrl}}/health
+Accept: application/json
+
+
+### ==========================================
+### 2. ADMIN AUTHENTICATION
+### ==========================================
+
+### Login as Admin
+POST {{baseUrl}}/admin/login
+Content-Type: application/json
+
+{
+  "username": "{{adminUsername}}",
+  "password": "{{adminPassword}}"
+}
+
+
+### ==========================================
+### 3. FLIGHT MANAGEMENT (Admin Operations)
+### ==========================================
+
+### Create a new flight (Saves the generated ID to a global variable)
+# @name createFlight
+POST {{baseUrl}}/flights
+Content-Type: application/json
+
+{
+  "from_city": "IST",
+  "to_city": "ANK",
+  "departure_time": "2026-05-20 10:00:00",
+  "arrival_time": "2026-05-20 11:30:00",
+  "price": 1250.50,
+  "seats_total": 180
+}
+
+> {%
+    // Capture the flight_id from the response and save it for future requests
+    client.global.set("created_flight_id", response.body.flight_id);
+    client.log("Saved Flight ID: " + client.global.get("created_flight_id"));
+%}
+
+### Test Runway Rule - Attempt to create a conflicting flight (Should fail with 400)
+POST {{baseUrl}}/flights
+Content-Type: application/json
+
+{
+  "from_city": "IST",
+  "to_city": "IZM",
+  "departure_time": "2026-05-20 10:30:00",
+  "arrival_time": "2026-05-20 11:45:00",
+  "price": 900.00,
+  "seats_total": 150
+}
+### Note: Fails because it's the same hour ('2026-05-20 10') from 'IST'
+
+
+### Update the created flight (e.g., change price and time)
+PUT {{baseUrl}}/flights/{{created_flight_id}}
+Content-Type: application/json
+
+{
+  "from_city": "IST",
+  "to_city": "ANK",
+  "departure_time": "2026-05-20 15:00:00",
+  "arrival_time": "2026-05-20 16:30:00",
+  "price": 1400.00,
+  "seats_total": 180
+}
+
+
+### ==========================================
+### 4. PUBLIC FLIGHT SEARCH
+### ==========================================
+
+### List all flights
+GET {{baseUrl}}/flights
+Accept: application/json
+
+### Search flights by city and date
+GET {{baseUrl}}/flights?from_city=IST&to_city=ANK&date=2026-05-20
+Accept: application/json
+
+
+### ==========================================
+### 5. TICKET BOOKING & RETRIEVAL
+### ==========================================
+
+### Book a ticket for the created flight
+POST {{baseUrl}}/tickets
+Content-Type: application/json
+
+{
+  "passenger_name": "Ahmet",
+  "passenger_surname": "Yilmaz",
+  "passenger_email": "{{testEmail}}",
+  "flight_ids": ["{{created_flight_id}}"]
+}
+
+### Get all bookings for the specific user
+GET {{baseUrl}}/tickets/{{testEmail}}
+Accept: application/json
+
+### Admin: View ALL bookings in the system
+GET {{baseUrl}}/admin/bookings
+Accept: application/json
+
+
+### ==========================================
+### 6. FLIGHT DELETION TESTS
+### ==========================================
+
+### Attempt to delete the flight we just booked (Should fail with 409 due to foreign keys)
+DELETE {{baseUrl}}/flights/{{created_flight_id}}
+
+### Create a dummy flight just to test successful deletion
+# @name createDummyFlight
+POST {{baseUrl}}/flights
+Content-Type: application/json
+
+{
+  "from_city": "IZM",
+  "to_city": "AYT",
+  "departure_time": "2026-08-15 08:00:00",
+  "arrival_time": "2026-08-15 09:15:00",
+  "price": 750.00,
+  "seats_total": 120
+}
+
+> {%
+    client.global.set("dummy_flight_id", response.body.flight_id);
+%}
+
+### Delete the dummy flight (Should succeed with 200)
+DELETE {{baseUrl}}/flights/{{dummy_flight_id}}
