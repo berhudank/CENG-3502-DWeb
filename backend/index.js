@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto');
 const morgan = require('morgan'); // Added Morgan
+const session = require('express-session');
 require('dotenv').config();
 
 const pool = require('./src/config/db.js');
@@ -9,13 +10,33 @@ const pool = require('./src/config/db.js');
 const flightRoutes = require('./src/routes/flightRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
 const ticketRoutes = require('./src/routes/ticketRoutes');
+const cityRoutes = require('./src/routes/cityRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const HOST = process.env.HOST || '127.0.0.1';
+const HOST =  process.env.HOST || 'localhost';
 
-app.use(cors());
+// --- MIDDLEWARE ---
+// UPDATE: To use cookies across different ports (React on 5173, Express on 5000),
+// you MUST specify the exact origin and set credentials to true.
+app.use(cors({
+    origin: `http://${HOST}:5173`,
+    credentials: true
+}));
+
 app.use(express.json());
+
+// NEW: Session & Cookie Configuration
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'super_secret_flyticket_key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: false, // Set to true if using HTTPS in production
+        httpOnly: true, // Prevents JavaScript from reading the cookie (Stops XSS attacks)
+        maxAge: 1000 * 60 * 60 * 24 // Cookie expires in 1 day
+    }
+}));
 
 // 1. Assign UUID to the request FIRST
 app.use((req, res, next) => {
@@ -47,6 +68,8 @@ app.use('/api/flights', flightRoutes);
 app.use('/api/admin', adminRoutes);
 
 app.use('/api/tickets', ticketRoutes);
+
+app.use('/api/cities', cityRoutes);
 
 app.get('/api/health', async (req, res, next) => {
     console.log(`[ACTION] [${req.id}] Pinging database...`);

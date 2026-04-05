@@ -24,16 +24,9 @@ const FlightDetail = () => {
         // Fetch the specific flight details
         const fetchFlightDetails = async () => {
             try {
-                // Since we didn't build a specific GET /flights/:id backend route,
-                // we fetch all flights and find the one we need.
-                // (In a massive production app, you would add a specific backend route for this!)
-                const response = await apiClient('/flights');
-                const selectedFlight = response.data.find(f => f.flight_id === flightId);
-
-                if (!selectedFlight) {
-                    throw new Error('Flight not found.');
-                }
-                setFlight(selectedFlight);
+                // Fetch JUST the specific flight instead of all of them!
+                const response = await apiClient(`/flights/${flightId}`);
+                setFlight(response.data);
             } catch (err) {
                 setError(err.message);
             } finally {

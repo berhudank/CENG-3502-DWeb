@@ -1,5 +1,6 @@
 // flyticket/frontend/src/components/flights/FlightSearchForm.jsx
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
+import {apiClient} from "../../api/apiClient.js";
 
 /**
  * PROPS: 'onSearch' is a function passed down from the parent.
@@ -11,8 +12,19 @@ const FlightSearchForm = ({ onSearch }) => {
     const [toCity, setToCity] = useState('');
     const [date, setDate] = useState('');
 
-    // A small subset of cities for the dropdown (You can expand this to 81 later)
-    const cities = ['IST', 'ANK', 'IZM', 'AYT'];
+    const [cities, setCities] = useState([]);
+
+    useEffect(() => {
+        const fetchCities = async () => {
+            try {
+                const response = await apiClient('/cities');
+                setCities(response.data);
+            } catch (error) {
+                console.error('Failed to load cities', error);
+            }
+        };
+        fetchCities();
+    }, []);
 
     const handleSubmit = (e) => {
         e.preventDefault(); // Prevents the page from refreshing on submit
@@ -27,7 +39,7 @@ const FlightSearchForm = ({ onSearch }) => {
                 <label>From</label>
                 <select value={fromCity} onChange={(e) => setFromCity(e.target.value)}>
                     <option value="">Any City</option>
-                    {cities.map(city => <option key={`from-${city}`} value={city}>{city}</option>)}
+                    {cities.map(city => <option key={`from-${city.city_id}`} value={city.city_id}>{city.city_name} ({city.city_id})</option>)}
                 </select>
             </div>
 
@@ -35,7 +47,7 @@ const FlightSearchForm = ({ onSearch }) => {
                 <label>To</label>
                 <select value={toCity} onChange={(e) => setToCity(e.target.value)}>
                     <option value="">Any City</option>
-                    {cities.map(city => <option key={`to-${city}`} value={city}>{city}</option>)}
+                    {cities.map(city => <option key={`to-${city.city_id}`} value={city.city_id}>{city.city_name} ({city.city_id})</option>)}
                 </select>
             </div>
 

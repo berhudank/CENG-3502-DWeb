@@ -31,17 +31,32 @@ const loginAdmin = async (req, res, next) => {
 
         console.log(`[AUTH] [${req.id}] Admin ${username} logged in successfully.`);
 
-        // In a strictly minimal setup, returning a success flag and username is enough.
-        // The React frontend will store this flag in memory/localStorage to allow access to the dashboard.
-        res.status(200).json({
-            success: true,
-            message: 'Login successful.',
-            admin: { username: admin.username }
-        });
+        // NEW: Save login state inside the session. Express automatically sets the HttpOnly cookie!
+        req.session.isAdminLoggedIn = true;
+        req.session.username = rows[0].username;
+        res.status(200).json({ success: true, message: 'Login successful.' });
 
     } catch (error) {
         next(error);
     }
+};
+
+// NEW: Endpoint for React to verify if the cookie is still valid
+const checkSession = (req, res) => {
+    if (req.session && req.session.isAdminLoggedIn) {
+        res.status(200).json({ success: true, username: req.session.username });
+    } else {
+        res.status(401).json({ success: false, error: 'Not authenticated.' });
+    }
+};
+
+// NEW: Endpoint to destroy the session cookie
+const logoutAdmin = (req, res) => {
+    req.session.destroy((err) => {
+        if (err) return res.status(500).json({ success: false, error: 'Could not log out.' });
+        res.clearCookie('connect.sid'); // connect.sid is the default session cookie name
+        res.status(200).json({ success: true, message: 'Logged out successfully.' });
+    });
 };
 
 /**
@@ -49,6 +64,10 @@ const loginAdmin = async (req, res, next) => {
  * Retrieves all ticket bookings across the entire system for the admin dashboard.
  */
 const getAllBookings = async (req, res, next) => {
+    // NEW: Minimal protection for the route
+    if (!req.session || !req.session.isAdminLoggedIn) {
+        return res.status(403).json({ success: false, error: 'Unauthorized access.' });
+    }
     console.log(`[ACTION] [${req.id}] Admin fetching all system bookings...`);
 
     try {
@@ -77,5 +96,7 @@ const getAllBookings = async (req, res, next) => {
 
 module.exports = {
     loginAdmin,
+    checkSession,
+    logoutAdmin,
     getAllBookings
 };

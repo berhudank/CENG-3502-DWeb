@@ -17,8 +17,8 @@ export const apiClient = async (endpoint, options = {}) => {
     };
 
     try {
-        const response = await fetch(url, { ...options, headers });
-
+        const response = await fetch(url, { ...options, headers, credentials: 'include' });
+        //console.log(response);
         // Native fetch does NOT automatically throw an error if the backend returns a 400 or 500 status.
         // We must check `response.ok` (which is true for 200-299 statuses) and throw the error ourselves.
         if (!response.ok) {

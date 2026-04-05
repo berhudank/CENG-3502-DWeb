@@ -2,6 +2,19 @@
 const pool = require('../config/db');
 const crypto = require('crypto');
 
+/** GET /api/flights/:id */
+const getFlightById = async (req, res, next) => {
+    try {
+        const [rows] = await pool.query('SELECT * FROM Flights WHERE flight_id = ?', [req.params.id]);
+        if (rows.length === 0) {
+            const err = new Error('Flight not found.');
+            err.status = 404;
+            throw err;
+        }
+        res.status(200).json({ success: true, data: rows[0] });
+    } catch (error) { next(error); }
+};
+
 /**
  * GET /api/flights
  * Retrieves all available flights. Supports optional query parameters for search[cite: 16, 17].
@@ -264,6 +277,7 @@ const deleteFlight = async (req, res, next) => {
 
 // DO NOT FORGET TO UPDATE YOUR EXPORTS:
 module.exports = {
+    getFlightById,
     getAllFlights,
     createFlight,
     updateFlight,

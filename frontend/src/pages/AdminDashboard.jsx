@@ -37,15 +37,23 @@ const AdminDashboard = () => {
 
     // 2. Safely call it inside useEffect
     useEffect(() => {
-        const isLoggedIn = localStorage.getItem('isAdminLoggedIn');
-        if (!isLoggedIn) {
-            navigate('/admin/login');
-            return; // Stop execution here if not logged in
-        }
+        const initializeDashboard = async () => {
+            // STEP 1: Verify Session
+            try {
+                //console.log("CHECK-SESSION IS ABOUT TO BE CALLED");
+                await apiClient('/admin/check-session');
+            } catch {
+                // If this fails, they are not logged in. Kick them out instantly.
+                navigate('/admin/login');
+                return; // CRITICAL: Stop the function here so we don't try to fetch data
+            }
+            // STEP 2: Fetch Data (Only runs if Step 1 succeeded)
+            // We just call the function. If it fails, fetchData's own internal try/catch
+            // will handle setting the error state on the screen.
+            fetchData();
+        };
 
-        // Call the cached fetch function safely
-        fetchData();
-
+        initializeDashboard();
     }, [navigate, fetchData]); // We add fetchData to the dependencies safely now
 
 
@@ -104,9 +112,8 @@ const AdminDashboard = () => {
         setShowForm(true);
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('isAdminLoggedIn');
-        localStorage.removeItem('adminUsername');
+    const handleLogout = async () => {
+        await apiClient('/admin/logout', { method: 'POST' });
         navigate('/admin/login');
     };
 

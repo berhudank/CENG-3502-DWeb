@@ -24,10 +24,6 @@ const AdminLogin = () => {
             });
 
             if (response.success) {
-                // Store a simple flag in the browser to maintain the session
-                localStorage.setItem('isAdminLoggedIn', 'true');
-                localStorage.setItem('adminUsername', response.admin.username);
-
                 // Redirect to the dashboard
                 navigate('/admin/dashboard');
             }

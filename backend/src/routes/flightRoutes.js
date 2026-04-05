@@ -7,6 +7,8 @@ const flightController = require('../controllers/flightController');
 // Description: Get all flights or search with query params
 router.get('/', flightController.getAllFlights);
 
+router.get('/:id', flightController.getFlightById);
+
 // Route: POST /api/flights
 // Description: Create a new flight (Requires strict runway validation)
 router.post('/', flightController.createFlight);
