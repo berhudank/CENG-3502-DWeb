@@ -60,8 +60,6 @@ body {
   cursor: not-allowed;
 }
 
-/* Append to flyticket/frontend/src/index.css */
-
 /* --- Home Page & Search Form --- */
 .hero-section {
   background-color: var(--primary-color);
@@ -189,7 +187,6 @@ body {
   }
 }
 
-/* Append to flyticket/frontend/src/index.css */
 
 /* --- Booking Page --- */
 .booking-layout {
@@ -292,4 +289,151 @@ body {
 
 .btn-secondary:hover {
   background-color: #5a6268;
+}
+
+/* --- Admin Login --- */
+.admin-login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+}
+
+.login-card {
+  background: white;
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.btn-login {
+  width: 100%;
+  margin-top: var(--spacing-md);
+}
+
+/* --- Admin Dashboard --- */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.dashboard-tabs {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  border-bottom: 2px solid #ccc;
+  padding-bottom: var(--spacing-sm);
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #666;
+  cursor: pointer;
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.tab-btn.active {
+  color: var(--primary-color);
+  border-bottom: 3px solid var(--primary-color);
+}
+
+.action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+/* Admin Form */
+.admin-form {
+  background: white;
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: var(--spacing-lg);
+}
+
+.form-row {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap; /* Mobile responsive form */
+}
+
+/* Responsive Data Tables */
+.table-responsive {
+  overflow-x: auto; /* Allows table to scroll horizontally on small screens */
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px; /* Forces scrolling on mobile instead of squishing text */
+}
+
+.data-table th, .data-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.data-table th {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-sm {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: white;
+}
+
+.btn-edit { background-color: #ffc107; color: #333; font-weight: bold; }
+.btn-delete { background-color: #dc3545; }
+
+/* --- Navbar --- */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.nav-logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--primary-color);
+  text-decoration: none; /* Removes the default link underline */
+  transition: color 0.2s;
+}
+
+.nav-logo:hover {
+  color: var(--primary-hover);
+}
+
+.nav-btn {
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  text-decoration: none;
 }

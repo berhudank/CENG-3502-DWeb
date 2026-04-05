@@ -3,25 +3,29 @@
 // Import React Router components. 
 // BrowserRouter: Keeps your UI in sync with the URL.
 // Routes: Looks through its child 'Route' components and renders the first one that matches the current URL.
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 
 import Home from './pages/Home';
 import FlightDetail from './pages/FlightDetail';
 import Confirmation from './pages/Confirmation';
-
-// We will create these Page components in the next step!
-// For now, we use simple placeholder inline-components just to ensure the routing works.
-const AdminLogin = () => <div><h2>Admin Login</h2></div>;
-const AdminDashboard = () => <div><h2>Admin Dashboard</h2></div>;
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
   return (
       // The BrowserRouter wraps our entire application
       <BrowserRouter>
-        {/* A simple responsive navigation bar (to be moved to a separate component later) */}
-        <nav style={{ padding: '16px', backgroundColor: '#fff', borderBottom: '1px solid #ccc' }}>
-          <h1 style={{ color: '#0056b3' }}>FlyTicket ✈️</h1>
-        </nav>
+          {/* Updated Navigation Bar */}
+          <nav className="navbar">
+              <Link to="/" className="nav-logo">
+                  FlyTicket ✈️
+              </Link>
+              <div className="nav-links">
+                  <Link to="/admin/dashboard" className="btn btn-secondary nav-btn">
+                      Admin Portal
+                  </Link>
+              </div>
+          </nav>
 
         <main className="container">
           {/* Routes act like a switch statement for our URLs */}
