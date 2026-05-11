@@ -1,7 +1,8 @@
 // flyticket/frontend/src/api/apiClient.js
 
 // The base URL of our Express backend
-const BASE_URL = 'http://192.168.1.172:5000/api';
+//const BASE_URL = 'http://192.168.1.172:5000/api';
+const BASE_URL = '/api';
 
 /**
  * A reusable fetch wrapper for our React components.

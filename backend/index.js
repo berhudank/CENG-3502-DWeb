@@ -3,6 +3,7 @@ const cors = require('cors');
 const crypto = require('crypto');
 const morgan = require('morgan'); // Added Morgan
 const session = require('express-session');
+const path = require('path');
 require('dotenv').config();
 
 const pool = require('./src/config/db.js');
@@ -63,6 +64,8 @@ app.use((req, res, next) => {
 
 // --- ROUTES ---
 
+app.use(express.static(path.join(__dirname, 'public')));
+
 app.use('/api/flights', flightRoutes);
 
 app.use('/api/admin', adminRoutes);
@@ -80,6 +83,13 @@ app.get('/api/health', async (req, res, next) => {
     } catch (error) {
         next(error);
     }
+});
+
+// --- NEW: REACT ROUTER CATCH-ALL ---
+// IMPORTANT: This MUST be the very last route before your error handler!
+// It ensures that any request that isn't an /api route gets handed to React.
+app.get(/.*/, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // --- CENTRALIZED ERROR HANDLING ---
