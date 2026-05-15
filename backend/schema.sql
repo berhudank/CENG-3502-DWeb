@@ -58,7 +58,7 @@ CREATE INDEX idx_flight_search ON Flights (from_city, to_city, departure_time);
 CREATE INDEX idx_runway_departure ON Flights (from_city, departure_time);
 CREATE INDEX idx_runway_arrival ON Flights (to_city, arrival_time);
 
--- Insert some dummy cities to get us started
+-- Insert cities
 INSERT INTO Cities (city_id, city_name) VALUES
 ('IST', 'Istanbul'),
 ('ANK', 'Ankara'),
@@ -142,3 +142,6 @@ INSERT INTO Cities (city_id, city_name) VALUES
 ('OSM', 'Osmaniye'),
 ('DUZ', 'Duzce')
 ON DUPLICATE KEY UPDATE city_name = VALUES(city_name);
+
+-- Admin account
+INSERT INTO Admins (username, password) VALUES ('admin', '$2b$10$u.1.ZUVpQVppczTWzkLlre1MxMzTmH.SWz.qE6RslICJ.BxT2Hj6C');
