@@ -10,6 +10,7 @@ import FlightDetail from './pages/FlightDetail';
 import Confirmation from './pages/Confirmation';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import CheckTicket from './pages/CheckTicket';
 
 function App() {
   return (
@@ -21,6 +22,9 @@ function App() {
                   FlyTicket ✈️
               </Link>
               <div className="nav-links">
+                  <Link to="/check-ticket" className="btn btn-secondary nav-btn" style={{marginRight: '10px'}}>
+                      Check Ticket
+                  </Link>
                   <Link to="/admin/dashboard" className="btn btn-secondary nav-btn">
                       Admin Portal
                   </Link>
@@ -34,6 +38,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/book/:flightId" element={<FlightDetail />} />
             <Route path="/confirmation" element={<Confirmation />} />
+            <Route path="/check-ticket" element={<CheckTicket />} />
 
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />

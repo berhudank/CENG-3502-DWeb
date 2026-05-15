@@ -43,7 +43,7 @@ const FlightDetail = () => {
         setBookingError(null);
 
         try {
-            // Call our Ticket Controller's POST route [cite: 83]
+            // Call our Ticket Controller's POST route
             const response = await apiClient('/tickets', {
                 method: 'POST',
                 body: JSON.stringify({

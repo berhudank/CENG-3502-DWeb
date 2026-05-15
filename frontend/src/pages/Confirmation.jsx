@@ -22,7 +22,7 @@ const Confirmation = () => {
 
     return (
         <div className="confirmation-page text-center">
-            {/* Success badge as requested in the assignment details [cite: 93] */}
+            {/* Success badge as requested in the assignment details */}
             <div className="success-badge">
                 <h1>✅ Booking Successful!</h1>
                 <p>Your ticket has been reserved securely.</p>
@@ -34,13 +34,13 @@ const Confirmation = () => {
 
                 <div className="receipt-grid">
                     <div className="receipt-section">
-                        <h3>Passenger Details</h3> [cite: 94]
+                        <h3>Passenger Details</h3>
                         <p>{passenger.name} {passenger.surname}</p>
                         <p>{passenger.email}</p>
                     </div>
 
                     <div className="receipt-section">
-                        <h3>Flight Details</h3> [cite: 94]
+                        <h3>Flight Details</h3>
                         <p><strong>Flight:</strong> {flight.flight_id}</p>
                         <p><strong>Route:</strong> {flight.from_city} ➔ {flight.to_city}</p>
                         <p><strong>Date:</strong> {new Date(flight.departure_time).toLocaleDateString('tr-TR')}</p>
@@ -49,7 +49,7 @@ const Confirmation = () => {
 
                 <div className="receipt-actions">
                     <button className="btn" onClick={() => navigate('/')}>Search More Flights</button>
-                    {/* Optional feature placeholder [cite: 95] */}
+                    {/* Optional feature placeholder */}
                     <button className="btn btn-secondary" onClick={() => window.print()}>Print E-Ticket</button>
                 </div>
             </div>

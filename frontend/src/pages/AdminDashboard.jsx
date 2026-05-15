@@ -10,6 +10,7 @@ const AdminDashboard = () => {
     // Data State
     const [flights, setFlights] = useState([]);
     const [bookings, setBookings] = useState([]);
+    const [cities, setCities] = useState([]);
     const [error, setError] = useState(null);
 
     // Form State for Add/Edit
@@ -48,9 +49,15 @@ const AdminDashboard = () => {
                 return; // CRITICAL: Stop the function here so we don't try to fetch data
             }
             // STEP 2: Fetch Data (Only runs if Step 1 succeeded)
-            // We just call the function. If it fails, fetchData's own internal try/catch
-            // will handle setting the error state on the screen.
             fetchData();
+            
+            // STEP 3: Fetch Cities
+            try {
+                const response = await apiClient('/cities');
+                setCities(response.data);
+            } catch (err) {
+                console.error("Failed to load cities", err);
+            }
         };
 
         initializeDashboard();
@@ -74,6 +81,26 @@ const AdminDashboard = () => {
     // 4. Handle Form Submission (Create or Update)
     const handleFlightSubmit = async (e) => {
         e.preventDefault();
+        
+        if (parseFloat(formData.price) < 0) {
+            alert('Price cannot be negative.');
+            return;
+        }
+        
+        const now = new Date();
+        const depTime = new Date(formData.departure_time);
+        const arrTime = new Date(formData.arrival_time);
+        
+        if (depTime < now || arrTime < now) {
+            alert('Cannot select a past date or time.');
+            return;
+        }
+        
+        if (arrTime <= depTime) {
+            alert('Arrival time must be after departure time.');
+            return;
+        }
+
         try {
             if (editingFlightId) {
                 // Update existing
@@ -152,16 +179,26 @@ const AdminDashboard = () => {
                     {showForm && (
                         <form className="admin-form" onSubmit={handleFlightSubmit}>
                             <div className="form-row">
-                                <div className="form-group"><label>From City (e.g. IST)</label><input type="text" value={formData.from_city} onChange={e => setFormData({...formData, from_city: e.target.value.toUpperCase()})} required /></div>
-                                <div className="form-group"><label>To City (e.g. ANK)</label><input type="text" value={formData.to_city} onChange={e => setFormData({...formData, to_city: e.target.value.toUpperCase()})} required /></div>
+                                <div className="form-group"><label>From City</label>
+                                    <select value={formData.from_city} onChange={e => setFormData({...formData, from_city: e.target.value})} required>
+                                        <option value="" disabled>Select City</option>
+                                        {cities.map(city => <option key={city.city_id} value={city.city_id}>{city.city_id} - {city.city_name}</option>)}
+                                    </select>
+                                </div>
+                                <div className="form-group"><label>To City</label>
+                                    <select value={formData.to_city} onChange={e => setFormData({...formData, to_city: e.target.value})} required>
+                                        <option value="" disabled>Select City</option>
+                                        {cities.map(city => <option key={city.city_id} value={city.city_id}>{city.city_id} - {city.city_name}</option>)}
+                                    </select>
+                                </div>
                             </div>
                             <div className="form-row">
-                                <div className="form-group"><label>Departure Time</label><input type="datetime-local" value={formData.departure_time} onChange={e => setFormData({...formData, departure_time: e.target.value})} required /></div>
-                                <div className="form-group"><label>Arrival Time</label><input type="datetime-local" value={formData.arrival_time} onChange={e => setFormData({...formData, arrival_time: e.target.value})} required /></div>
+                                <div className="form-group"><label>Departure Time</label><input type="datetime-local" value={formData.departure_time} onChange={e => setFormData({...formData, departure_time: e.target.value})} min={new Date().toISOString().slice(0, 16)} required /></div>
+                                <div className="form-group"><label>Arrival Time</label><input type="datetime-local" value={formData.arrival_time} onChange={e => setFormData({...formData, arrival_time: e.target.value})} min={new Date().toISOString().slice(0, 16)} required /></div>
                             </div>
                             <div className="form-row">
-                                <div className="form-group"><label>Price (₺)</label><input type="number" step="0.01" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} required /></div>
-                                <div className="form-group"><label>Total Seats</label><input type="number" value={formData.seats_total} onChange={e => setFormData({...formData, seats_total: e.target.value})} required /></div>
+                                <div className="form-group"><label>Price (₺)</label><input type="number" step="0.01" min="0" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} required /></div>
+                                <div className="form-group"><label>Total Seats</label><input type="number" min="1" value={formData.seats_total} onChange={e => setFormData({...formData, seats_total: e.target.value})} disabled={!!editingFlightId} required /></div>
                             </div>
                             <button type="submit" className="btn btn-save">{editingFlightId ? 'Update Flight' : 'Save New Flight'}</button>
                         </form>

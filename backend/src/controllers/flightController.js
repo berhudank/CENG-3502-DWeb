@@ -17,7 +17,7 @@ const getFlightById = async (req, res, next) => {
 
 /**
  * GET /api/flights
- * Retrieves all available flights. Supports optional query parameters for search[cite: 16, 17].
+ * Retrieves all available flights. Supports optional query parameters for search.
  */
 const getAllFlights = async (req, res, next) => {
     console.log(`[ACTION] [${req.id}] Fetching flights...`);
@@ -55,10 +55,38 @@ const getAllFlights = async (req, res, next) => {
 
 /**
  * POST /api/flights
- * Creates a new flight[cite: 83]. Enforces the single runway rule using strict DB transactions.
+ * Creates a new flight. Enforces the single runway rule using strict DB transactions.
  */
 const createFlight = async (req, res, next) => {
     const { from_city, to_city, departure_time, arrival_time, price, seats_total } = req.body;
+
+    if (price < 0) {
+        const err = new Error('Price cannot be negative.');
+        err.status = 400;
+        return next(err);
+    }
+
+    if (seats_total <= 0) {
+        const err = new Error('Total seats must be greater than zero.');
+        err.status = 400;
+        return next(err);
+    }
+
+    const now = new Date();
+    const depTime = new Date(departure_time);
+    const arrTime = new Date(arrival_time);
+
+    if (depTime < now || arrTime < now) {
+        const err = new Error('Cannot select a past date or time.');
+        err.status = 400;
+        return next(err);
+    }
+
+    if (arrTime <= depTime) {
+        const err = new Error('Arrival time must be after departure time.');
+        err.status = 400;
+        return next(err);
+    }
     const flight_id = `FLT-${crypto.randomUUID().slice(0, 8).toUpperCase()}`; // e.g., FLT-A1B2C3D4
 
     console.log(`[ACTION] [${req.id}] Attempting to create flight ${flight_id} from ${from_city} to ${to_city}`);
@@ -71,39 +99,29 @@ const createFlight = async (req, res, next) => {
         await connection.beginTransaction();
         console.log(`[ACTION] [${req.id}] Transaction started.`);
 
-        // 2. LOCK THE AIRPORTS (Concurrency Control)
-        // By selecting the departure and arrival cities FOR UPDATE, we lock these rows.
-        // If another admin is trying to add a flight for IST right now, their request
-        // will pause here and wait for our transaction to finish.
-        await connection.query(
-            'SELECT city_id FROM Cities WHERE city_id IN (?, ?) FOR UPDATE',
-            [from_city, to_city]
+        // 2. VALIDATE RUNWAY RULES (Concurrency Control)
+        // By checking for conflicts and using FOR UPDATE on Flights, we lock the relevant index gaps
+        // and eliminate the need for locking the entire Cities rows which unnecessarily blocked parallel transactions.
+        const [conflictCheck] = await connection.query(
+            `SELECT flight_id, 
+                    CASE 
+                        WHEN from_city = ? AND DATE_FORMAT(departure_time, '%Y-%m-%d %H') = DATE_FORMAT(?, '%Y-%m-%d %H') THEN 'departure'
+                        ELSE 'arrival'
+                    END as conflict_type
+             FROM Flights 
+             WHERE (from_city = ? AND DATE_FORMAT(departure_time, '%Y-%m-%d %H') = DATE_FORMAT(?, '%Y-%m-%d %H'))
+                OR (to_city = ? AND DATE_FORMAT(arrival_time, '%Y-%m-%d %H') = DATE_FORMAT(?, '%Y-%m-%d %H'))
+             FOR UPDATE`,
+            [from_city, departure_time, from_city, departure_time, to_city, arrival_time]
         );
 
-        // 3. VALIDATE DEPARTURE RUNWAY RULE [cite: 50, 51]
-        // Check if any flight departs from this city at the exact same hour
-        const [depCheck] = await connection.query(
-            `SELECT flight_id FROM Flights 
-             WHERE from_city = ? 
-             AND DATE_FORMAT(departure_time, '%Y-%m-%d %H') = DATE_FORMAT(?, '%Y-%m-%d %H')`,
-            [from_city, departure_time]
-        );
-
-        if (depCheck.length > 0) {
-            throw new Error(`Runway rule violation: Another flight already departs from ${from_city} during this hour.`);
-        }
-
-        // 4. VALIDATE ARRIVAL RUNWAY RULE [cite: 52, 53]
-        // Check if any flight arrives at this city at the exact same hour
-        const [arrCheck] = await connection.query(
-            `SELECT flight_id FROM Flights 
-             WHERE to_city = ? 
-             AND DATE_FORMAT(arrival_time, '%Y-%m-%d %H') = DATE_FORMAT(?, '%Y-%m-%d %H')`,
-            [to_city, arrival_time]
-        );
-
-        if (arrCheck.length > 0) {
-            throw new Error(`Runway rule violation: Another flight already arrives in ${to_city} during this hour.`);
+        if (conflictCheck.length > 0) {
+            const conflict = conflictCheck[0];
+            if (conflict.conflict_type === 'departure') {
+                throw new Error(`Runway rule violation: Another flight already departs from ${from_city} during this hour.`);
+            } else {
+                throw new Error(`Runway rule violation: Another flight already arrives in ${to_city} during this hour.`);
+            }
         }
 
         // 5. INSERT THE FLIGHT
@@ -131,6 +149,17 @@ const createFlight = async (req, res, next) => {
         console.log(`[ERROR] [${req.id}] Transaction failed. Rolling back. Reason: ${error.message}`);
         await connection.rollback();
 
+        // Handle MySQL foreign key constraint error specifically for Cities table
+        if (error.code === 'ER_NO_REFERENCED_ROW_2') {
+            const match = error.message.match(/FOREIGN KEY \(\`(from_city|to_city)\`\) REFERENCES \`Cities\`/);
+            if (match) {
+                const fieldName = match[1];
+                const badCode = fieldName === 'from_city' ? req.body.from_city : req.body.to_city;
+                error.message = `Airport code ${badCode} is not defined`;
+                error.status = 400;
+            }
+        }
+
         // Pass to the centralized error handler. If it's our custom error, set status to 400 (Bad Request)
         if (error.message.includes('Runway rule violation')) {
             error.status = 400;
@@ -149,6 +178,34 @@ const createFlight = async (req, res, next) => {
 const updateFlight = async (req, res, next) => {
     const { id } = req.params;
     const { from_city, to_city, departure_time, arrival_time, price, seats_total } = req.body;
+
+    if (price < 0) {
+        const err = new Error('Price cannot be negative.');
+        err.status = 400;
+        return next(err);
+    }
+
+    if (seats_total <= 0) {
+        const err = new Error('Total seats must be greater than zero.');
+        err.status = 400;
+        return next(err);
+    }
+
+    const now = new Date();
+    const depTime = new Date(departure_time);
+    const arrTime = new Date(arrival_time);
+
+    if (depTime < now || arrTime < now) {
+        const err = new Error('Cannot select a past date or time.');
+        err.status = 400;
+        return next(err);
+    }
+
+    if (arrTime <= depTime) {
+        const err = new Error('Arrival time must be after departure time.');
+        err.status = 400;
+        return next(err);
+    }
 
     console.log(`[ACTION] [${req.id}] Attempting to update flight ${id}...`);
 
@@ -170,45 +227,36 @@ const updateFlight = async (req, res, next) => {
 
         const existingFlight = existingFlightRows[0];
 
-        // Calculate the new available seats.
-        // If an admin increases total seats by 10, available seats go up by 10.
-        const seatDifference = seats_total - existingFlight.seats_total;
-        const new_seats_available = existingFlight.seats_available + seatDifference;
-
-        if (new_seats_available < 0) {
-            throw new Error(`Cannot reduce seats. There are already ${existingFlight.seats_total - existingFlight.seats_available} seats booked.`);
+        if (parseInt(seats_total) !== existingFlight.seats_total) {
+            throw new Error('Cannot change total seats after flight is created.');
         }
 
-        // 2. Lock the airports for concurrency control
-        await connection.query(
-            'SELECT city_id FROM Cities WHERE city_id IN (?, ?) FOR UPDATE',
-            [from_city, to_city]
+        // Available seats remain unchanged because total seats cannot be changed
+        const new_seats_available = existingFlight.seats_available;
+
+        // 2. Validate Runway Rules (Concurrency Control)
+        // Combined into a single query to eliminate redundancy and unnecessary Cities table locks.
+        const [conflictCheck] = await connection.query(
+            `SELECT flight_id, 
+                    CASE 
+                        WHEN from_city = ? AND DATE_FORMAT(departure_time, '%Y-%m-%d %H') = DATE_FORMAT(?, '%Y-%m-%d %H') THEN 'departure'
+                        ELSE 'arrival'
+                    END as conflict_type
+             FROM Flights 
+             WHERE ((from_city = ? AND DATE_FORMAT(departure_time, '%Y-%m-%d %H') = DATE_FORMAT(?, '%Y-%m-%d %H'))
+                OR (to_city = ? AND DATE_FORMAT(arrival_time, '%Y-%m-%d %H') = DATE_FORMAT(?, '%Y-%m-%d %H')))
+               AND flight_id != ?
+             FOR UPDATE`,
+            [from_city, departure_time, from_city, departure_time, to_city, arrival_time, id]
         );
 
-        // 3. Validate Departure Runway Rule (Excluding the current flight)
-        const [depCheck] = await connection.query(
-            `SELECT flight_id FROM Flights 
-             WHERE from_city = ? 
-             AND DATE_FORMAT(departure_time, '%Y-%m-%d %H') = DATE_FORMAT(?, '%Y-%m-%d %H')
-             AND flight_id != ?`,
-            [from_city, departure_time, id]
-        );
-
-        if (depCheck.length > 0) {
-            throw new Error(`Runway rule violation: Another flight already departs from ${from_city} during this hour.`);
-        }
-
-        // 4. Validate Arrival Runway Rule (Excluding the current flight)
-        const [arrCheck] = await connection.query(
-            `SELECT flight_id FROM Flights 
-             WHERE to_city = ? 
-             AND DATE_FORMAT(arrival_time, '%Y-%m-%d %H') = DATE_FORMAT(?, '%Y-%m-%d %H')
-             AND flight_id != ?`,
-            [to_city, arrival_time, id]
-        );
-
-        if (arrCheck.length > 0) {
-            throw new Error(`Runway rule violation: Another flight already arrives in ${to_city} during this hour.`);
+        if (conflictCheck.length > 0) {
+            const conflict = conflictCheck[0];
+            if (conflict.conflict_type === 'departure') {
+                throw new Error(`Runway rule violation: Another flight already departs from ${from_city} during this hour.`);
+            } else {
+                throw new Error(`Runway rule violation: Another flight already arrives in ${to_city} during this hour.`);
+            }
         }
 
         // 5. Execute Update
@@ -231,7 +279,17 @@ const updateFlight = async (req, res, next) => {
         console.log(`[ERROR] [${req.id}] Update failed. Rolling back. Reason: ${error.message}`);
         await connection.rollback();
 
-        if (error.message.includes('Runway rule violation') || error.message.includes('Cannot reduce seats')) {
+        if (error.code === 'ER_NO_REFERENCED_ROW_2') {
+            const match = error.message.match(/FOREIGN KEY \(\`(from_city|to_city)\`\) REFERENCES \`Cities\`/);
+            if (match) {
+                const fieldName = match[1];
+                const badCode = fieldName === 'from_city' ? req.body.from_city : req.body.to_city;
+                error.message = `Airport code ${badCode} is not defined`;
+                error.status = 400;
+            }
+        }
+
+        if (error.message.includes('Runway rule violation') || error.message.includes('Cannot change total seats')) {
             error.status = 400;
         } else if (error.message === 'Flight not found.') {
             error.status = 404;

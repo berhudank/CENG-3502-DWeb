@@ -41,30 +41,22 @@ const bookTicket = async (req, res, next) => {
             const flight_id = flight_ids[i];
             const segment_order = i + 1;
 
-            // Step A: Lock the specific flight row to prevent simultaneous overselling
-            const [flightRows] = await connection.query(
-                'SELECT seats_available FROM Flights WHERE flight_id = ? FOR UPDATE',
+            // Step A & B & C: Atomically attempt to deduct a seat without explicit read-locks
+            const [updateResult] = await connection.query(
+                'UPDATE Flights SET seats_available = seats_available - 1 WHERE flight_id = ? AND seats_available > 0',
                 [flight_id]
             );
 
-            if (flightRows.length === 0) {
-                throw new Error(`Flight ${flight_id} does not exist.`);
-            }
-
-            const availableSeats = flightRows[0].seats_available;
-
-            // Step B: Check capacity
-            if (availableSeats <= 0) {
+            if (updateResult.affectedRows === 0) {
+                // If 0 rows affected, check if it was because of capacity or non-existence
+                const [checkFlight] = await connection.query('SELECT flight_id FROM Flights WHERE flight_id = ?', [flight_id]);
+                if (checkFlight.length === 0) {
+                    throw new Error(`Flight ${flight_id} does not exist.`);
+                }
                 throw new Error(`Flight ${flight_id} is completely sold out.`);
             }
 
-            // Step C: Deduct a seat from the flight
-            await connection.query(
-                'UPDATE Flights SET seats_available = seats_available - 1 WHERE flight_id = ?',
-                [flight_id]
-            );
-
-            // Step D: Create the Ticket Segment record [cite: 37, 38, 42]
+            // Step D: Create the Ticket Segment record
             const ticket_id = `TKT-${crypto.randomUUID().slice(0, 12).toUpperCase()}`;
             const insertTicketQuery = `
                 INSERT INTO Ticket_Segments (ticket_id, booking_id, flight_id, segment_order)
@@ -130,7 +122,45 @@ const getUserBookings = async (req, res, next) => {
     }
 };
 
+/**
+ * GET /api/tickets/booking/:booking_id
+ * Retrieves booking details by Booking ID.
+ */
+const getBookingById = async (req, res, next) => {
+    const { booking_id } = req.params;
+    console.log(`[ACTION] [${req.id}] Fetching booking details for ID: ${booking_id}`);
+
+    try {
+        const query = `
+            SELECT 
+                b.booking_id, b.passenger_name, b.passenger_surname, b.passenger_email, b.booking_date,
+                ts.ticket_id, ts.seat_number, ts.segment_order,
+                f.flight_id, f.from_city, f.to_city, f.departure_time, f.arrival_time, f.price
+            FROM Bookings b
+            JOIN Ticket_Segments ts ON b.booking_id = ts.booking_id
+            JOIN Flights f ON ts.flight_id = f.flight_id
+            WHERE b.booking_id = ?
+            ORDER BY ts.segment_order ASC
+        `;
+
+        const [bookings] = await pool.query(query, [booking_id]);
+
+        if (bookings.length === 0) {
+            const err = new Error('Booking not found.');
+            err.status = 404;
+            return next(err);
+        }
+
+        console.log(`[ACTION] [${req.id}] Found booking ${booking_id}.`);
+        res.status(200).json({ success: true, data: bookings });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     bookTicket,
-    getUserBookings
+    getUserBookings,
+    getBookingById
 };
