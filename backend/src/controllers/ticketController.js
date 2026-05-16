@@ -8,13 +8,13 @@ const crypto = require('crypto');
  * Expects: { passenger_name, passenger_surname, passenger_email, flight_ids: ['FLT-123'] }
  */
 const bookTicket = async (req, res, next) => {
-    const { passenger_name, passenger_surname, passenger_email, flight_ids } = req.body;
+    const { passenger_name, passenger_surname, passenger_email, flight_seats } = req.body;
 
-    console.log(`[ACTION] [${req.id}] Booking attempt for ${passenger_email} on flights:`, flight_ids);
+    console.log(`[ACTION] [${req.id}] Booking attempt for ${passenger_email} on flights:`, flight_seats);
 
     // Validate input
-    if (!flight_ids || !Array.isArray(flight_ids) || flight_ids.length === 0) {
-        const err = new Error('No flights selected for booking.');
+    if (!flight_seats || !Array.isArray(flight_seats) || flight_seats.length === 0) {
+        const err = new Error('No flights/seats selected for booking.');
         err.status = 400;
         return next(err);
     }
@@ -36,9 +36,13 @@ const bookTicket = async (req, res, next) => {
         ]);
 
         // 2. Loop through each flight segment to check capacity and create tickets
-        // (Even though it's an array of 1 for now, this future-proofs it for transit flights)
-        for (let i = 0; i < flight_ids.length; i++) {
-            const flight_id = flight_ids[i];
+        for (let i = 0; i < flight_seats.length; i++) {
+            const { flight_id, seat_number } = flight_seats[i];
+            
+            if (!seat_number) {
+                throw new Error('Seat number is required for all flights.');
+            }
+            
             const segment_order = i + 1;
 
             // Step A & B & C: Atomically attempt to deduct a seat without explicit read-locks
@@ -59,12 +63,12 @@ const bookTicket = async (req, res, next) => {
             // Step D: Create the Ticket Segment record
             const ticket_id = `TKT-${crypto.randomUUID().slice(0, 12).toUpperCase()}`;
             const insertTicketQuery = `
-                INSERT INTO Ticket_Segments (ticket_id, booking_id, flight_id, segment_order)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO Ticket_Segments (ticket_id, booking_id, flight_id, seat_number, segment_order)
+                VALUES (?, ?, ?, ?, ?)
             `;
-            await connection.query(insertTicketQuery, [ticket_id, booking_id, flight_id, segment_order]);
+            await connection.query(insertTicketQuery, [ticket_id, booking_id, flight_id, seat_number.toString(), segment_order]);
 
-            console.log(`[ACTION] [${req.id}] Seat secured on ${flight_id}. Ticket generated: ${ticket_id}.`);
+            console.log(`[ACTION] [${req.id}] Seat ${seat_number} secured on ${flight_id}. Ticket generated: ${ticket_id}.`);
         }
 
         // 3. Commit the transaction if everything succeeded
@@ -81,8 +85,14 @@ const bookTicket = async (req, res, next) => {
         console.log(`[ERROR] [${req.id}] Booking failed. Rolling back. Reason: ${error.message}`);
         await connection.rollback();
 
+        // If it's a unique constraint violation on the seat
+        if (error.code === 'ER_DUP_ENTRY') {
+            error.message = 'The selected seat is already taken. Please choose another seat.';
+            error.status = 400;
+        }
+
         // If it's our custom capacity error, send a 400 Bad Request
-        if (error.message.includes('sold out') || error.message.includes('does not exist')) {
+        if (error.message.includes('sold out') || error.message.includes('does not exist') || error.message.includes('Seat number is required')) {
             error.status = 400;
         }
         next(error);

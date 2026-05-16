@@ -2,6 +2,18 @@
 const pool = require('../config/db');
 const crypto = require('crypto');
 
+/** GET /api/flights/:id/seats */
+const getFlightSeats = async (req, res, next) => {
+    try {
+        const [rows] = await pool.query(
+            'SELECT seat_number FROM Ticket_Segments WHERE flight_id = ?', 
+            [req.params.id]
+        );
+        const takenSeats = rows.map(row => row.seat_number);
+        res.status(200).json({ success: true, data: takenSeats });
+    } catch (error) { next(error); }
+};
+
 /** GET /api/flights/:id */
 const getFlightById = async (req, res, next) => {
     try {
@@ -335,6 +347,7 @@ const deleteFlight = async (req, res, next) => {
 
 // DO NOT FORGET TO UPDATE YOUR EXPORTS:
 module.exports = {
+    getFlightSeats,
     getFlightById,
     getAllFlights,
     createFlight,

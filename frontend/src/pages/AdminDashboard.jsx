@@ -240,7 +240,7 @@ const AdminDashboard = () => {
                         <table className="data-table">
                             <thead>
                             <tr>
-                                <th>Booking ID</th><th>Passenger Name</th><th>Email</th><th>Flight ID</th><th>Booking Date</th>
+                                <th>Booking ID</th><th>Passenger Name</th><th>Email</th><th>Flight ID</th><th>Seat</th><th>Booking Date</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -250,6 +250,7 @@ const AdminDashboard = () => {
                                     <td>{b.passenger_name} {b.passenger_surname}</td>
                                     <td>{b.passenger_email}</td>
                                     <td>{b.flight_id} ({b.from_city} ➔ {b.to_city})</td>
+                                    <td>{b.seat_number || '—'}</td>
                                     <td>{new Date(b.booking_date).toLocaleString('tr-TR')}</td>
                                 </tr>
                             ))}

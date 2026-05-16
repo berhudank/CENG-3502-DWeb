@@ -437,3 +437,176 @@ body {
   font-size: 0.9rem;
   text-decoration: none;
 }
+
+/* --- Airplane Seat Map CSS --- */
+.airplane-container {
+  max-height: 420px;
+  overflow-y: auto;
+  margin: 20px 0;
+  position: relative;
+}
+
+.airplane-container::-webkit-scrollbar {
+  width: 6px;
+}
+.airplane-container::-webkit-scrollbar-thumb {
+  background: #cfd8dc;
+  border-radius: 3px;
+}
+
+.fuselage-wrapper {
+  position: relative;
+  width: 740px;            /* 200 (wing) + 340 (body) + 200 (wing) */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 auto;
+}
+
+.fuselage {
+  background: white;
+  border-left: 4px solid #b0bec5;
+  border-right: 4px solid #b0bec5;
+  width: 340px;
+  min-height: 300px;       /* minimum body length (~30 seats) */
+  position: relative;
+  padding: 20px 20px 30px 20px;
+  box-shadow: inset 0 0 15px rgba(0,0,0,0.05);
+  background-image: linear-gradient(#f9f9f9 2px, transparent 2px);
+  background-size: 100% 30px;
+  z-index: 2;
+}
+
+/* Nose cone — taller and pointier */
+.cockpit {
+  width: 340px;
+  height: 130px;
+  background: white;
+  border: 4px solid #b0bec5;
+  border-bottom: none;
+  border-radius: 100px 100px 0 0;
+  position: relative;
+  box-shadow: inset 0 0 15px rgba(0,0,0,0.05);
+  z-index: 2;
+}
+
+.cockpit-window {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 36px;
+  background: #bbdefb;
+  border-radius: 40px 40px 10px 10px;
+  border: 3px solid #90caf9;
+  opacity: 0.8;
+}
+
+/* Tail — sits below the fuselage */
+.tail {
+  width: 340px;
+  height: 60px;
+  background: white;
+  border: 4px solid #b0bec5;
+  border-top: none;
+  border-radius: 0 0 80px 80px;
+  box-shadow: inset 0 0 15px rgba(0,0,0,0.05);
+  z-index: 2;
+}
+
+/* Wings — position set dynamically via inline style */
+.wings-layer {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.wing {
+  width: 200px;
+  height: 110px;
+  background: linear-gradient(180deg, #eceff1 0%, #cfd8dc 100%);
+  border: 3px solid #b0bec5;
+  position: relative;
+}
+
+.wing.left {
+  border-radius: 160px 0 0 40px;
+  transform: skewY(-20deg);
+  box-shadow: -5px 10px 15px rgba(0,0,0,0.08);
+}
+
+.wing.right {
+  border-radius: 0 160px 40px 0;
+  transform: skewY(20deg);
+  box-shadow: 5px 10px 15px rgba(0,0,0,0.08);
+}
+
+.engine {
+  position: absolute;
+  bottom: -40px;
+  width: 55px;
+  height: 70px;
+  background: linear-gradient(180deg, #90a4ae 0%, #607d8b 100%);
+  border-radius: 24px 24px 12px 12px;
+  border: 3px solid #546e7a;
+}
+
+.wing.left .engine { right: 30px; }
+.wing.right .engine { left: 30px; }
+
+.seat-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.seat-group {
+  display: flex;
+  gap: 8px;
+}
+
+.aisle {
+  width: 20px;
+}
+
+.seat-btn {
+  width: 35px;
+  height: 40px;
+  border: 2px solid #cfd8dc;
+  border-radius: 6px 6px 3px 3px;
+  cursor: pointer;
+  background: white;
+  font-weight: bold;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.seat-btn:hover:not(:disabled) {
+  border-color: var(--primary-color);
+  background: #e3f2fd;
+  transform: translateY(-2px);
+}
+
+.seat-btn.selected {
+  background: #4caf50;
+  color: white;
+  border-color: #388e3c;
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
+.seat-btn.taken {
+  background: #ffcdd2;
+  color: #d32f2f;
+  border-color: #ef9a9a;
+  cursor: not-allowed;
+  opacity: 0.7;
+}

@@ -44,6 +44,7 @@ const Confirmation = () => {
                         <p><strong>Flight:</strong> {flight.flight_id}</p>
                         <p><strong>Route:</strong> {flight.from_city} ➔ {flight.to_city}</p>
                         <p><strong>Date:</strong> {new Date(flight.departure_time).toLocaleDateString('tr-TR')}</p>
+                        <p><strong>Seat:</strong> {passenger.seat_number}</p>
                     </div>
                 </div>
 

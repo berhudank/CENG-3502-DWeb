@@ -17,6 +17,8 @@ const FlightDetail = () => {
     const [passengerName, setPassengerName] = useState('');
     const [passengerSurname, setPassengerSurname] = useState('');
     const [passengerEmail, setPassengerEmail] = useState('');
+    const [selectedSeat, setSelectedSeat] = useState('');
+    const [takenSeats, setTakenSeats] = useState([]);
     const [bookingError, setBookingError] = useState(null);
     const [isBooking, setIsBooking] = useState(false);
 
@@ -25,8 +27,14 @@ const FlightDetail = () => {
         const fetchFlightDetails = async () => {
             try {
                 // Fetch JUST the specific flight instead of all of them!
-                const response = await apiClient(`/flights/${flightId}`);
-                setFlight(response.data);
+                const flightRes = await apiClient(`/flights/${flightId}`);
+                setFlight(flightRes.data);
+
+                // Fetch taken seats for this flight
+                const seatsRes = await apiClient(`/flights/${flightId}/seats`);
+                if (seatsRes.success) {
+                    setTakenSeats(seatsRes.data);
+                }
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -39,6 +47,12 @@ const FlightDetail = () => {
 
     const handleBookTicket = async (e) => {
         e.preventDefault();
+        
+        if (!selectedSeat) {
+            setBookingError('Please select a seat to continue.');
+            return;
+        }
+
         setIsBooking(true);
         setBookingError(null);
 
@@ -50,7 +64,7 @@ const FlightDetail = () => {
                     passenger_name: passengerName,
                     passenger_surname: passengerSurname,
                     passenger_email: passengerEmail,
-                    flight_ids: [flightId] // Future-proofed array!
+                    flight_seats: [{ flight_id: flightId, seat_number: selectedSeat }]
                 })
             });
 
@@ -62,13 +76,19 @@ const FlightDetail = () => {
                     passenger: {
                         name: passengerName,
                         surname: passengerSurname,
-                        email: passengerEmail
+                        email: passengerEmail,
+                        seat_number: selectedSeat
                     }
                 }
             });
 
         } catch (err) {
             setBookingError(err.message);
+            // If the seat was taken concurrently, mark it as taken visually and unselect it
+            if (err.message.includes('already taken')) {
+                setTakenSeats(prev => [...prev, selectedSeat]);
+                setSelectedSeat('');
+            }
         } finally {
             setIsBooking(false);
         }
@@ -115,7 +135,104 @@ const FlightDetail = () => {
                                 onChange={(e) => setPassengerEmail(e.target.value)}
                             />
                         </div>
-                        <button type="submit" className="btn btn-book" disabled={isBooking}>
+
+                        <div className="seat-selection-container" style={{marginBottom: '20px'}}>
+                            <label style={{display: 'block', marginBottom: '10px', fontWeight: 'bold'}}>Select Your Seat</label>
+
+                            {/* Seat legend */}
+                            <div style={{display: 'flex', gap: '16px', marginBottom: '12px', fontSize: '0.8rem'}}>
+                                <span><span className="seat-btn" style={{width: '18px', height: '18px', display: 'inline-flex', fontSize: '0', verticalAlign: 'middle', marginRight: '4px'}}></span> Available</span>
+                                <span><span className="seat-btn selected" style={{width: '18px', height: '18px', display: 'inline-flex', fontSize: '0', verticalAlign: 'middle', marginRight: '4px'}}></span> Selected</span>
+                                <span><span className="seat-btn taken" style={{width: '18px', height: '18px', display: 'inline-flex', fontSize: '0', verticalAlign: 'middle', marginRight: '4px'}}></span> Taken</span>
+                            </div>
+
+                            {/* Airplane body — scrollable viewport */}
+                            {(() => {
+                                // Calculate dynamic wing position at the middle of the plane
+                                const seatsPerRow = 6;
+                                const totalRows = Math.ceil(flight.seats_total / seatsPerRow);
+                                const fuselageHeight = Math.max(300, totalRows * 55 + 50);
+                                const cockpitHeight = 130;
+                                const tailHeight = 60;
+                                const wingHeight = 110;
+                                const totalPlaneHeight = cockpitHeight + fuselageHeight + tailHeight;
+                                const wingTop = (totalPlaneHeight / 2) - (wingHeight / 2);
+
+                                return (
+                            <div className="airplane-container">
+                                <div className="fuselage-wrapper">
+                                    {/* Wings & engines — positioned at the middle of the plane */}
+                                    <div className="wings-layer" style={{ top: `${wingTop}px` }}>
+                                        <div className="wing left"><div className="engine"></div></div>
+                                        <div className="wing right"><div className="engine"></div></div>
+                                    </div>
+
+                                    {/* Nose cone */}
+                                    <div className="cockpit">
+                                        <div className="cockpit-window"></div>
+                                    </div>
+
+                                    {/* Fuselage body with seats */}
+                                    <div className="fuselage">
+                                        {/* Seat rows — 6 seats per row (3 + aisle + 3) */}
+                                        {(() => {
+                                            const seatsPerRow = 6;
+                                            const totalRows = Math.ceil(flight.seats_total / seatsPerRow);
+                                            const rows = [];
+
+                                            for (let r = 0; r < totalRows; r++) {
+                                                const leftGroup = [];
+                                                const rightGroup = [];
+
+                                                for (let c = 0; c < seatsPerRow; c++) {
+                                                    const seatNum = r * seatsPerRow + c + 1;
+                                                    if (seatNum > flight.seats_total) break;
+
+                                                    const isTaken = takenSeats.includes(seatNum.toString());
+                                                    const isSelected = selectedSeat === seatNum.toString();
+
+                                                    const btn = (
+                                                        <button
+                                                            key={seatNum}
+                                                            type="button"
+                                                            disabled={isTaken}
+                                                            className={`seat-btn${isSelected ? ' selected' : ''}${isTaken ? ' taken' : ''}`}
+                                                            onClick={() => setSelectedSeat(seatNum.toString())}
+                                                            title={`Seat ${seatNum}`}
+                                                        >
+                                                            {seatNum}
+                                                        </button>
+                                                    );
+
+                                                    if (c < 3) leftGroup.push(btn);
+                                                    else rightGroup.push(btn);
+                                                }
+
+                                                rows.push(
+                                                    <div className="seat-row" key={r}>
+                                                        <div className="seat-group">{leftGroup}</div>
+                                                        <div className="aisle"></div>
+                                                        <div className="seat-group">{rightGroup}</div>
+                                                    </div>
+                                                );
+                                            }
+                                            return rows;
+                                        })()}
+                                    </div>
+
+                                    {/* Tail */}
+                                    <div className="tail"></div>
+                                </div>
+                            </div>
+                                );
+                            })()}
+
+                            <p style={{fontSize: '0.85rem', color: '#666', marginTop: '8px', textAlign: 'center'}}>
+                                Selected Seat: <strong>{selectedSeat || 'None'}</strong>
+                            </p>
+                        </div>
+
+                        <button type="submit" className="btn btn-book" disabled={isBooking || !selectedSeat}>
                             {isBooking ? 'Processing...' : 'Confirm Booking'}
                         </button>
                     </form>
