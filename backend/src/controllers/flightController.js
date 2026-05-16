@@ -5,7 +5,14 @@ const crypto = require('crypto');
 /** GET /api/flights/:id */
 const getFlightById = async (req, res, next) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM Flights WHERE flight_id = ?', [req.params.id]);
+        const [rows] = await pool.query(
+            `SELECT f.*, c1.city_name AS from_city_name, c2.city_name AS to_city_name
+             FROM Flights f
+             JOIN Cities c1 ON f.from_city = c1.city_id
+             JOIN Cities c2 ON f.to_city = c2.city_id
+             WHERE f.flight_id = ?`,
+            [req.params.id]
+        );
         if (rows.length === 0) {
             const err = new Error('Flight not found.');
             err.status = 404;
@@ -23,26 +30,30 @@ const getAllFlights = async (req, res, next) => {
     console.log(`[ACTION] [${req.id}] Fetching flights...`);
     try {
         const { from_city, to_city, date } = req.query;
-        let query = 'SELECT * FROM Flights WHERE 1=1';
+        let query = `SELECT f.*, c1.city_name AS from_city_name, c2.city_name AS to_city_name
+             FROM Flights f
+             JOIN Cities c1 ON f.from_city = c1.city_id
+             JOIN Cities c2 ON f.to_city = c2.city_id
+             WHERE 1=1`;
         const queryParams = [];
 
         // Dynamically build the SQL query based on user search parameters
         if (from_city) {
-            query += ' AND from_city = ?';
+            query += ' AND f.from_city = ?';
             queryParams.push(from_city);
         }
         if (to_city) {
-            query += ' AND to_city = ?';
+            query += ' AND f.to_city = ?';
             queryParams.push(to_city);
         }
         if (date) {
             // Match the date portion of the DATETIME column
-            query += ' AND DATE(departure_time) = ?';
+            query += ' AND DATE(f.departure_time) = ?';
             queryParams.push(date);
         }
 
         // Order by departure time for better UX
-        query += ' ORDER BY departure_time ASC';
+        query += ' ORDER BY f.departure_time ASC';
 
         const [flights] = await pool.query(query, queryParams);
         console.log(`[ACTION] [${req.id}] Found ${flights.length} flights.`);

@@ -59,9 +59,9 @@ const CheckTicket = () => {
                         {bookingDetails.map((segment) => (
                             <div key={segment.ticket_id} className="flight-card">
                                 <div className="route-info">
-                                    <span className="city">{segment.from_city}</span>
+                                    <span className="city">{segment.from_city_name} ({segment.from_city})</span>
                                     <span className="arrow">➔</span>
-                                    <span className="city">{segment.to_city}</span>
+                                    <span className="city">{segment.to_city_name} ({segment.to_city})</span>
                                 </div>
                                 <div className="time-info">
                                     <p><strong>Departure:</strong> {new Date(segment.departure_time).toLocaleString('tr-TR')}</p>

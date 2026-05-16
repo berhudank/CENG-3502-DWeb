@@ -215,7 +215,7 @@ const AdminDashboard = () => {
                             {flights.map(flight => (
                                 <tr key={flight.flight_id}>
                                     <td>{flight.flight_id}</td>
-                                    <td>{flight.from_city} ➔ {flight.to_city}</td>
+                                    <td>{flight.from_city_name} ({flight.from_city}) ➔ {flight.to_city_name} ({flight.to_city})</td>
                                     <td>{flight.departure_time}</td>
                                     <td>{flight.arrival_time}</td>
                                     <td>₺{flight.price}</td>
@@ -249,7 +249,7 @@ const AdminDashboard = () => {
                                     <td>{b.booking_id}</td>
                                     <td>{b.passenger_name} {b.passenger_surname}</td>
                                     <td>{b.passenger_email}</td>
-                                    <td>{b.flight_id} ({b.from_city} ➔ {b.to_city})</td>
+                                    <td>{b.flight_id} ({b.from_city_name} ➔ {b.to_city_name})</td>
                                     <td>{new Date(b.booking_date).toLocaleString('tr-TR')}</td>
                                 </tr>
                             ))}

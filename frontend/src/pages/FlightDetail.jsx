@@ -125,8 +125,8 @@ const FlightDetail = () => {
                 <div className="flight-summary-card">
                     <h3>Flight Summary</h3>
                     <div className="summary-details">
-                        <p><strong>From:</strong> {flight.from_city}</p>
-                        <p><strong>To:</strong> {flight.to_city}</p>
+                        <p><strong>From:</strong> {flight.from_city_name} ({flight.from_city})</p>
+                        <p><strong>To:</strong> {flight.to_city_name} ({flight.to_city})</p>
                         <p><strong>Departure:</strong> {new Date(flight.departure_time).toLocaleString('tr-TR')}</p>
                         <p><strong>Arrival:</strong> {new Date(flight.arrival_time).toLocaleString('tr-TR')}</p>
                         <hr />

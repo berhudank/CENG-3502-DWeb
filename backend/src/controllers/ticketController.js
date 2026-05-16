@@ -104,10 +104,13 @@ const getUserBookings = async (req, res, next) => {
             SELECT 
                 b.booking_id, b.booking_date,
                 ts.ticket_id, ts.seat_number, ts.segment_order,
-                f.flight_id, f.from_city, f.to_city, f.departure_time, f.arrival_time, f.price
+                f.flight_id, f.from_city, f.to_city, f.departure_time, f.arrival_time, f.price,
+                c1.city_name AS from_city_name, c2.city_name AS to_city_name
             FROM Bookings b
             JOIN Ticket_Segments ts ON b.booking_id = ts.booking_id
             JOIN Flights f ON ts.flight_id = f.flight_id
+            JOIN Cities c1 ON f.from_city = c1.city_id
+            JOIN Cities c2 ON f.to_city = c2.city_id
             WHERE b.passenger_email = ?
             ORDER BY b.booking_date DESC, ts.segment_order ASC
         `;
@@ -135,10 +138,13 @@ const getBookingById = async (req, res, next) => {
             SELECT 
                 b.booking_id, b.passenger_name, b.passenger_surname, b.passenger_email, b.booking_date,
                 ts.ticket_id, ts.seat_number, ts.segment_order,
-                f.flight_id, f.from_city, f.to_city, f.departure_time, f.arrival_time, f.price
+                f.flight_id, f.from_city, f.to_city, f.departure_time, f.arrival_time, f.price,
+                c1.city_name AS from_city_name, c2.city_name AS to_city_name
             FROM Bookings b
             JOIN Ticket_Segments ts ON b.booking_id = ts.booking_id
             JOIN Flights f ON ts.flight_id = f.flight_id
+            JOIN Cities c1 ON f.from_city = c1.city_id
+            JOIN Cities c2 ON f.to_city = c2.city_id
             WHERE b.booking_id = ?
             ORDER BY ts.segment_order ASC
         `;

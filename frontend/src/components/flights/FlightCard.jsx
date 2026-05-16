@@ -24,14 +24,14 @@ const FlightCard = ({ flight }) => {
         <div className="flight-card">
             <div className="flight-card-route">
                 <div className="city-time">
-                    <h3>{flight.from_city}</h3>
+                    <h3>{flight.from_city_name} ({flight.from_city})</h3>
                     <p>{formatTime(flight.departure_time)}</p>
                 </div>
                 <div className="flight-duration">
                     <span>✈️</span>
                 </div>
                 <div className="city-time">
-                    <h3>{flight.to_city}</h3>
+                    <h3>{flight.to_city_name} ({flight.to_city})</h3>
                     <p>{formatTime(flight.arrival_time)}</p>
                 </div>
             </div>
