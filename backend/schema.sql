@@ -47,10 +47,11 @@ CREATE TABLE Ticket_Segments (
                                  ticket_id VARCHAR(50) PRIMARY KEY, 
                                  booking_id VARCHAR(50) NOT NULL,
     flight_id VARCHAR(20) NOT NULL,
-    seat_number VARCHAR(10), -- Optional 
+    seat_number VARCHAR(10) NOT NULL,
     segment_order INT DEFAULT 1, -- e.g., 1 for direct flight. If transit, next flight is 2.
     FOREIGN KEY (booking_id) REFERENCES Bookings(booking_id) ON DELETE CASCADE,
-    FOREIGN KEY (flight_id) REFERENCES Flights(flight_id)
+    FOREIGN KEY (flight_id) REFERENCES Flights(flight_id),
+    UNIQUE KEY unique_flight_seat (flight_id, seat_number)
     );
 
 -- Indexes for performance on frequently searched columns

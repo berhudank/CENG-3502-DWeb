@@ -70,7 +70,7 @@ FlyTicket is a full-stack web application designed for booking and managing flig
    ```
 #### &ensp; With Backend's Endpoint
 1. You can access the home page directly via your backend's URL `http://[IP_ADDRESS]:[PORT]/`. The compiled frontend files are stored in the `backend/public/` directory and served by the backend.
-2. When you make changes to frontend files in the `frontend` directory, you need to re-compile the frontend files by running `npm run build` in the `frontend` directory.
+2. When you make changes to frontend files in the `frontend` directory, you need to re-compile the frontend files by running `npm run build` in the `frontend` directory. After this restart the backend server for the changes to take effect.
 
 ## Admin Login Credentials
 

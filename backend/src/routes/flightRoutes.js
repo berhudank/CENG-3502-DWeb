@@ -7,6 +7,7 @@ const flightController = require('../controllers/flightController');
 // Description: Get all flights or search with query params
 router.get('/', flightController.getAllFlights);
 
+router.get('/:id/seats', flightController.getFlightSeats);
 router.get('/:id', flightController.getFlightById);
 
 // Route: POST /api/flights

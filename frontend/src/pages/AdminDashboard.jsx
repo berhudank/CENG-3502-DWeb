@@ -50,7 +50,7 @@ const AdminDashboard = () => {
             }
             // STEP 2: Fetch Data (Only runs if Step 1 succeeded)
             fetchData();
-            
+
             // STEP 3: Fetch Cities
             try {
                 const response = await apiClient('/cities');
@@ -81,21 +81,21 @@ const AdminDashboard = () => {
     // 4. Handle Form Submission (Create or Update)
     const handleFlightSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (parseFloat(formData.price) < 0) {
             alert('Price cannot be negative.');
             return;
         }
-        
+
         const now = new Date();
         const depTime = new Date(formData.departure_time);
         const arrTime = new Date(formData.arrival_time);
-        
+
         if (depTime < now || arrTime < now) {
             alert('Cannot select a past date or time.');
             return;
         }
-        
+
         if (arrTime <= depTime) {
             alert('Arrival time must be after departure time.');
             return;
@@ -152,10 +152,10 @@ const AdminDashboard = () => {
             </div>
 
             <div className="dashboard-tabs">
-                <button className={`tab-btn ${activeTab === 'flights' ? 'active' : ''}`} onClick={() => {setActiveTab('flights'); setError(null);} }>
+                <button className={`tab-btn ${activeTab === 'flights' ? 'active' : ''}`} onClick={() => { setActiveTab('flights'); setError(null); }}>
                     Manage Flights
                 </button>
-                <button className={`tab-btn ${activeTab === 'bookings' ? 'active' : ''}`} onClick={() => {setActiveTab('bookings'); setError(null);}}>
+                <button className={`tab-btn ${activeTab === 'bookings' ? 'active' : ''}`} onClick={() => { setActiveTab('bookings'); setError(null); }}>
                     View All Bookings
                 </button>
             </div>
@@ -168,7 +168,7 @@ const AdminDashboard = () => {
                     <div className="action-bar">
                         <h3>Flight Management</h3>
                         <button className="btn" onClick={() => {
-                            setFormData({ from_city: '', to_city: '', departure_time: '', arrival_time: '', price: '', seats_total: ''});
+                            setFormData({ from_city: '', to_city: '', departure_time: '', arrival_time: '', price: '', seats_total: '' });
                             setEditingFlightId(null);
                             setShowForm(!showForm);
                         }}>
@@ -180,25 +180,25 @@ const AdminDashboard = () => {
                         <form className="admin-form" onSubmit={handleFlightSubmit}>
                             <div className="form-row">
                                 <div className="form-group"><label>From City</label>
-                                    <select value={formData.from_city} onChange={e => setFormData({...formData, from_city: e.target.value})} required>
+                                    <select value={formData.from_city} onChange={e => setFormData({ ...formData, from_city: e.target.value })} required>
                                         <option value="" disabled>Select City</option>
                                         {cities.map(city => <option key={city.city_id} value={city.city_id}>{city.city_id} - {city.city_name}</option>)}
                                     </select>
                                 </div>
                                 <div className="form-group"><label>To City</label>
-                                    <select value={formData.to_city} onChange={e => setFormData({...formData, to_city: e.target.value})} required>
+                                    <select value={formData.to_city} onChange={e => setFormData({ ...formData, to_city: e.target.value })} required>
                                         <option value="" disabled>Select City</option>
                                         {cities.map(city => <option key={city.city_id} value={city.city_id}>{city.city_id} - {city.city_name}</option>)}
                                     </select>
                                 </div>
                             </div>
                             <div className="form-row">
-                                <div className="form-group"><label>Departure Time</label><input type="datetime-local" value={formData.departure_time} onChange={e => setFormData({...formData, departure_time: e.target.value})} min={new Date().toISOString().slice(0, 16)} required /></div>
-                                <div className="form-group"><label>Arrival Time</label><input type="datetime-local" value={formData.arrival_time} onChange={e => setFormData({...formData, arrival_time: e.target.value})} min={new Date().toISOString().slice(0, 16)} required /></div>
+                                <div className="form-group"><label>Departure Time</label><input type="datetime-local" value={formData.departure_time} onChange={e => setFormData({ ...formData, departure_time: e.target.value })} min={new Date().toISOString().slice(0, 16)} required /></div>
+                                <div className="form-group"><label>Arrival Time</label><input type="datetime-local" value={formData.arrival_time} onChange={e => setFormData({ ...formData, arrival_time: e.target.value })} min={new Date().toISOString().slice(0, 16)} required /></div>
                             </div>
                             <div className="form-row">
-                                <div className="form-group"><label>Price (₺)</label><input type="number" step="0.01" min="0" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} required /></div>
-                                <div className="form-group"><label>Total Seats</label><input type="number" min="1" value={formData.seats_total} onChange={e => setFormData({...formData, seats_total: e.target.value})} disabled={!!editingFlightId} required /></div>
+                                <div className="form-group"><label>Price (₺)</label><input type="number" step="0.01" min="0" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} required /></div>
+                                <div className="form-group"><label>Total Seats</label><input type="number" min="1" value={formData.seats_total} onChange={e => setFormData({ ...formData, seats_total: e.target.value })} disabled={!!editingFlightId} required /></div>
                             </div>
                             <button type="submit" className="btn btn-save">{editingFlightId ? 'Update Flight' : 'Save New Flight'}</button>
                         </form>
@@ -207,25 +207,25 @@ const AdminDashboard = () => {
                     <div className="table-responsive">
                         <table className="data-table">
                             <thead>
-                            <tr>
-                                <th>Flight ID</th><th>Route</th><th>Departure</th><th>Arrival</th><th>Price</th><th>Seats</th><th>Actions</th>
-                            </tr>
+                                <tr>
+                                    <th>Flight ID</th><th>Route</th><th>Departure</th><th>Arrival</th><th>Price</th><th>Seats</th><th>Actions</th>
+                                </tr>
                             </thead>
                             <tbody>
-                            {flights.map(flight => (
-                                <tr key={flight.flight_id}>
-                                    <td>{flight.flight_id}</td>
-                                    <td>{flight.from_city_name} ({flight.from_city}) ➔ {flight.to_city_name} ({flight.to_city})</td>
-                                    <td>{flight.departure_time}</td>
-                                    <td>{flight.arrival_time}</td>
-                                    <td>₺{flight.price}</td>
-                                    <td>{flight.seats_available}/{flight.seats_total}</td>
-                                    <td className="action-buttons">
-                                        <button className="btn-sm btn-edit" onClick={() => openEditForm(flight)}>Edit</button>
-                                        <button className="btn-sm btn-delete" onClick={() => handleDeleteFlight(flight.flight_id)}>Delete</button>
-                                    </td>
-                                </tr>
-                            ))}
+                                {flights.map(flight => (
+                                    <tr key={flight.flight_id}>
+                                        <td>{flight.flight_id}</td>
+                                        <td>{flight.from_city_name} ({flight.from_city}) ➔ {flight.to_city_name} ({flight.to_city})</td>
+                                        <td>{flight.departure_time}</td>
+                                        <td>{flight.arrival_time}</td>
+                                        <td>₺{flight.price}</td>
+                                        <td>{flight.seats_available}/{flight.seats_total}</td>
+                                        <td className="action-buttons">
+                                            <button className="btn-sm btn-edit" onClick={() => openEditForm(flight)}>Edit</button>
+                                            <button className="btn-sm btn-delete" onClick={() => handleDeleteFlight(flight.flight_id)}>Delete</button>
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>
@@ -239,20 +239,21 @@ const AdminDashboard = () => {
                     <div className="table-responsive">
                         <table className="data-table">
                             <thead>
-                            <tr>
-                                <th>Booking ID</th><th>Passenger Name</th><th>Email</th><th>Flight ID</th><th>Booking Date</th>
-                            </tr>
+                                <tr>
+                                    <th>Booking ID</th><th>Passenger Name</th><th>Email</th><th>Flight ID</th><th>Seat</th><th>Booking Date</th>
+                                </tr>
                             </thead>
                             <tbody>
-                            {bookings.map(b => (
-                                <tr key={b.ticket_id}>
-                                    <td>{b.booking_id}</td>
-                                    <td>{b.passenger_name} {b.passenger_surname}</td>
-                                    <td>{b.passenger_email}</td>
-                                    <td>{b.flight_id} ({b.from_city_name} ➔ {b.to_city_name})</td>
-                                    <td>{new Date(b.booking_date).toLocaleString('tr-TR')}</td>
-                                </tr>
-                            ))}
+                                {bookings.map(b => (
+                                    <tr key={b.ticket_id}>
+                                        <td>{b.booking_id}</td>
+                                        <td>{b.passenger_name} {b.passenger_surname}</td>
+                                        <td>{b.passenger_email}</td>
+                                        <td>{b.flight_id} ({b.from_city_name} ➔ {b.to_city_name})</td>
+                                        <td>{b.seat_number || '—'}</td>
+                                        <td>{new Date(b.booking_date).toLocaleString('tr-TR')}</td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>

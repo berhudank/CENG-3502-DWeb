@@ -69,6 +69,7 @@ const CheckTicket = () => {
                                 </div>
                                 <p><strong>Price:</strong> ₺{segment.price}</p>
                                 <p><strong>Flight ID:</strong> {segment.flight_id}</p>
+                                <p><strong>Seat:</strong> {segment.seat_number}</p>
                                 <p><strong>Ticket ID:</strong> {segment.ticket_id}</p>
                             </div>
                         ))}
