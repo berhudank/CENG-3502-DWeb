@@ -33,7 +33,7 @@ FlyTicket is a full-stack web application designed for booking and managing flig
    ```
 3. Start the backend server
    ```bash
-   node src/index.js
+   node index.js
    ```
 
 ### 3. Access Frontend
